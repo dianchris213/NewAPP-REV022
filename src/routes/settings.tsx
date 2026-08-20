@@ -473,7 +473,6 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
     announce(copy.fundSourceAdded, true);
   };
 
-
   const commitRename = async (id: string) => {
     if (walletPending.byId[id]) return;
     if (!(await renameWallet(id, editingName))) {

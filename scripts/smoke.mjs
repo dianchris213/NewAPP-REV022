@@ -51,7 +51,9 @@ function checkArtifacts() {
   const required = ["dist/server/index.mjs", "dist/client", "dist/nitro.json"];
   const missing = required.filter((f) => !existsSync(f));
   if (missing.length) {
-    throw new Error(`Missing production build output: ${missing.join(", ")}. Run \`bun run build\` first.`);
+    throw new Error(
+      `Missing production build output: ${missing.join(", ")}. Run \`bun run build\` first.`,
+    );
   }
   console.log("ok   production build artifacts present");
 }

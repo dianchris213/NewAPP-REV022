@@ -13,7 +13,6 @@ import { captureApiError } from "./monitoring";
 /** Outcome of a fund-source create: validation, duplicate or transport failure. */
 export type WalletAddResult = { ok: true } | { ok: false; reason: "invalid" | "duplicate" | "api" };
 
-
 type TelegramWebAppUser = {
   first_name?: string;
   last_name?: string;
@@ -460,7 +459,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     },
     [pushActivity],
   );
-
 
   /** How many records still reference this fund source (transactions + categories). */
   const walletUsage = useCallback(

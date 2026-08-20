@@ -87,4 +87,3 @@ export async function captureApiError(
   });
   return severity;
 }
-
