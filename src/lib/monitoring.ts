@@ -46,3 +46,45 @@ export async function captureMonitoringError(
   const Sentry = await import("@sentry/react");
   Sentry.captureException(error, { extra: context });
 }
+
+export type ApiSeverity = "warning" | "error" | "fatal";
+
+/**
+ * Severity routing for API failures — Sentry alert rules can filter on
+ * `level` and on the `api.severity` tag:
+ *  - 4xx client/validation issues → warning (digest only)
+ *  - 5xx server issues           → error   (alert)
+ *  - transport / unknown         → fatal   (page immediately)
+ */
+export function severityForStatus(status?: number): ApiSeverity {
+  if (!status) return "fatal";
+  if (status >= 500) return "error";
+  if (status >= 400) return "warning";
+  return "warning";
+}
+
+/**
+ * Report an API failure as its own Sentry issue. The fingerprint keeps one
+ * stable issue per operation + status instead of thousands of duplicates.
+ */
+export async function captureApiError(
+  error: unknown,
+  meta: { operation: string; status?: number; context?: Record<string, unknown> },
+) {
+  const severity = severityForStatus(meta.status);
+  if (typeof window === "undefined" || !DSN) return severity;
+  await initMonitoring();
+  const Sentry = await import("@sentry/react");
+  Sentry.captureException(error, {
+    level: severity,
+    tags: {
+      "api.operation": meta.operation,
+      "api.status": String(meta.status ?? "unknown"),
+      "api.severity": severity,
+    },
+    fingerprint: ["api", meta.operation, String(meta.status ?? "unknown")],
+    extra: { ...meta.context },
+  });
+  return severity;
+}
+
