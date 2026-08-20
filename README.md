@@ -96,3 +96,53 @@ bun run build
 - **Tambah Kantong**: urutan `Jenis` → `Nama Sumber Dana` → `Nama Kantong` → `Saldo Awal`, validasi inline per-field, dan penyimpanan diblokir bila belum ada / belum memilih Sumber Dana.
 - **Empty state**: daftar bawaan dihapus total; Sumber Dana & pilihan provider kosong sampai user membuatnya sendiri.
 - Test: `bun run test` (lihat bagian **Testing (Vitest)**).
+
+## Validation, quality gates & monitoring (REV021)
+
+### Fund source name rule — minimum 3 characters
+Fund source names are validated in two layers and both enforce the same rule:
+
+- UI (`src/routes/settings.tsx`): `minLength=3`, `maxLength=24`, inline `role="alert"` error, `aria-invalid` / `aria-errormessage` wiring.
+- Store (`src/lib/app-store.tsx` → `addWallet` / `renameWallet`): the name is trimmed and whitespace-collapsed, then rejected when it is shorter than 3 or longer than 24 characters, or when it duplicates an existing name in the same type + provider.
+
+So `"Ka"` and `"  Ab  "` are rejected, `"Kas"` is accepted.
+
+### API error handling for saving a fund source
+`src/lib/wallet-api.ts` is the persistence seam (`persistWallet`, `WalletApiError` with an HTTP `status`). When the commit fails:
+
+1. the optimistic row is rolled back (no phantom fund source),
+2. a clear toast is shown (`Gagal menyimpan sumber dana. Coba lagi.` + hint that the input was kept),
+3. the typed name stays in the form and focus returns to the field so the user can retry with one click,
+4. a severity-tagged Sentry issue is created.
+
+### Scripts
+
+```sh
+bun run typecheck   # tsc --noEmit (zero errors required)
+bun run test        # Vitest: unit, flow and visual-contract suites
+bun run lint        # ESLint incl. jsx-a11y
+bun run build       # production build
+bun run smoke       # smoke test against the production build (scripts/smoke.mjs)
+```
+
+Suites added in REV021:
+- `src/tests/fund-source-add-flow.test.tsx` — end-to-end add flow, 3-character rule, live search filtering.
+- `src/tests/fund-source-api-error.test.tsx` — API failure: toast, rollback, preserved input, focus recovery, Sentry severity mapping.
+- `src/tests/visual-regression.test.tsx` — layout contract snapshots for the delete dialog and the Undo toast (container classes, element sizes, focus position). Update intentional changes with `bunx vitest run -u`.
+
+### CI workflow
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `main`: install → lint → typecheck → test → build → smoke. Any failing step blocks the merge.
+
+### Enabling Sentry
+Monitoring (`src/lib/monitoring.ts`) is inert until a DSN is configured. Set these environment variables (e.g. in `.env`):
+
+```sh
+VITE_SENTRY_DSN=https://<key>@o0.ingest.sentry.io/<project>
+VITE_SENTRY_ENV=production      # optional, defaults to the Vite mode
+VITE_APP_RELEASE=rev021         # optional, used for release health
+```
+
+Behaviour once enabled:
+- `initMonitoring()` boots Sentry in the browser only, with PII scrubbing (`beforeSend`) so no financial data leaves the device.
+- `captureApiError(error, { operation, status })` creates one stable issue per operation + status (fingerprint `["api", operation, status]`) and tags `api.operation`, `api.status`, `api.severity`.
+- Severity routing (`severityForStatus`): `4xx → warning`, `5xx → error`, unknown/transport → `fatal`. Configure Sentry alert rules on `level` or the `api.severity` tag (e.g. page on `fatal`, alert on `error`, digest `warning`).
