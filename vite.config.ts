@@ -27,22 +27,24 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  plugins: sentryUploadEnabled
-    ? [
-        sentryVitePlugin({
-          authToken: sentryAuthToken,
-          org: sentryOrg,
-          project: sentryProject,
-          telemetry: false,
-          release: process.env["VITE_APP_RELEASE"]
-            ? { name: process.env["VITE_APP_RELEASE"] }
-            : undefined,
-          sourcemaps: {
-            filesToDeleteAfterUpload: ["**/*.map"],
-          },
-        }),
-      ]
-    : [],
+  plugins:
+    sentryAuthToken && sentryOrg && sentryProject
+      ? [
+          sentryVitePlugin({
+            authToken: sentryAuthToken,
+            org: sentryOrg,
+            project: sentryProject,
+            telemetry: false,
+            ...(process.env["VITE_APP_RELEASE"]
+              ? { release: { name: process.env["VITE_APP_RELEASE"] } }
+              : {}),
+            sourcemaps: {
+              filesToDeleteAfterUpload: ["**/*.map"],
+            },
+          }),
+        ]
+      : [],
+
   vite: {
     build: {
       // "hidden" = emit maps for Sentry, but no sourceMappingURL comment in the
