@@ -87,6 +87,8 @@ type Dict = {
   undo: string;
   fundSourceRestored: string;
   fundSourceRestoreFailed: string;
+  fundSourceSaveFailed: string;
+  fundSourceSaveFailedHint: string;
   loadingFundSources: string;
   undoIn: string;
   undoHint: string;
@@ -185,6 +187,8 @@ const dictionaries: Record<Language, Dict> = {
     undo: "Urungkan",
     fundSourceRestored: "Sumber dana dipulihkan",
     fundSourceRestoreFailed: "Gagal memulihkan sumber dana.",
+    fundSourceSaveFailed: "Gagal menyimpan sumber dana. Coba lagi.",
+    fundSourceSaveFailedHint: "Data yang Anda isi tetap tersimpan di formulir.",
     loadingFundSources: "Memuat sumber dana…",
     undoIn: "Urungkan dalam",
     undoHint: "Tekan Enter untuk urungkan, Esc untuk tutup.",
@@ -280,6 +284,8 @@ const dictionaries: Record<Language, Dict> = {
     undo: "Undo",
     fundSourceRestored: "Fund source restored",
     fundSourceRestoreFailed: "Could not restore fund source.",
+    fundSourceSaveFailed: "Could not save the fund source. Please try again.",
+    fundSourceSaveFailedHint: "Your input has been kept in the form.",
     loadingFundSources: "Loading fund sources…",
     undoIn: "Undo in",
     undoHint: "Press Enter to undo, Esc to dismiss.",
