@@ -397,10 +397,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addWallet = useCallback(
-    async (input: { name: string; type: WalletType; provider?: string; balance: number }) => {
+    async (input: {
+      name: string;
+      type: WalletType;
+      provider?: string;
+      balance: number;
+    }): Promise<WalletAddResult> => {
       const name = input.name.trim().replace(/\s+/g, " ");
       // Fund source names require at least 3 characters.
-      if (name.length < 3 || name.length > 24) return false;
+      if (name.length < 3 || name.length > 24) return { ok: false, reason: "invalid" };
       let ok = false;
       const id = `w${Date.now()}`;
       const wallet: Wallet = {
@@ -420,18 +425,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return [...prev, wallet];
       });
       await settle();
+      if (!ok) {
+        setWalletPending((prev) => ({ ...prev, add: false }));
+        return { ok: false, reason: "duplicate" };
+      }
+      try {
+        await persistWallet(wallet);
+      } catch (error) {
+        // Roll back the optimistic row, keep the form input intact upstream and
+        // raise a severity-tagged Sentry issue for the failed write.
+        setWallets((prev) => prev.filter((w) => w.id !== wallet.id));
+        setWalletPending((prev) => ({ ...prev, add: false }));
+        void captureApiError(error, {
+          operation: "wallet.add",
+          ...(error instanceof WalletApiError ? { status: error.status } : {}),
+          context: { walletType: wallet.type },
+        });
+        return { ok: false, reason: "api" };
+      }
       setWalletPending((prev) => ({ ...prev, add: false }));
-      if (!ok) return false;
       pushActivity({
         kind: "create",
         title: "Sumber Dana Dibuat",
         detail: `${wallet.name} · ${WALLET_TYPE_LABEL[wallet.type]}${wallet.provider ? ` · ${wallet.provider}` : ""}`,
         amount: wallet.balance,
       });
-      return true;
+      return { ok: true };
     },
     [pushActivity],
   );
+
 
   /** How many records still reference this fund source (transactions + categories). */
   const walletUsage = useCallback(
