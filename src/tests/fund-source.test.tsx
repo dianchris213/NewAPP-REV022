@@ -63,7 +63,7 @@ describe("Kartu Sumber Dana", () => {
     await waitFor(() => expect(screen.getByTestId("fund-source-name")).toHaveFocus());
   });
 
-  it("rejects names shorter than 2 characters", async () => {
+  it("rejects names shorter than 3 characters", async () => {
     const user = await setup();
     await addSource(user, "A");
     expect(await screen.findByTestId("fund-source-form-error")).toBeInTheDocument();
