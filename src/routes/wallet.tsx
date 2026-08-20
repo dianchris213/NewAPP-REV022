@@ -458,9 +458,13 @@ function Wallet() {
         <AddWalletSheet
           onClose={() => setAddOpen(false)}
           onSubmit={(payload) => {
-            void addWallet(payload).then((ok) => {
-              if (!ok) {
-                toast.error("Nama kantong tidak valid atau duplikat.");
+            void addWallet(payload).then((result) => {
+              if (!result.ok) {
+                toast.error(
+                  result.reason === "api"
+                    ? "Gagal menyimpan kantong. Periksa koneksi lalu coba lagi."
+                    : "Nama kantong tidak valid atau duplikat.",
+                );
                 return;
               }
               toast.success("Kantong ditambahkan", {
