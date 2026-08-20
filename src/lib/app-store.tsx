@@ -253,7 +253,7 @@ type AppState = {
     type: WalletType;
     provider?: string;
     balance: number;
-  }) => Promise<boolean>;
+  }) => Promise<WalletAddResult>;
   renameWallet: (id: string, name: string) => Promise<boolean>;
   deleteWallet: (id: string) => Promise<boolean>;
   /** Re-insert a previously deleted fund source (Undo). */
