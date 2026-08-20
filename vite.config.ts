@@ -19,7 +19,6 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 const sentryAuthToken = process.env["SENTRY_AUTH_TOKEN"];
 const sentryOrg = process.env["SENTRY_ORG"];
 const sentryProject = process.env["SENTRY_PROJECT"];
-const sentryUploadEnabled = Boolean(sentryAuthToken && sentryOrg && sentryProject);
 
 export default defineConfig({
   tanstackStart: {
