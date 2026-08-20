@@ -447,10 +447,21 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
       announce(copy.invalidFundSource, false);
       return;
     }
-    const ok = await addWallet({ name: trimmed, type, balance: 0 });
-    if (!ok) {
-      setError(copy.invalidFundSource);
-      announce(copy.invalidFundSource, false);
+    const result = await addWallet({ name: trimmed, type, balance: 0 });
+    if (!result.ok) {
+      // API/transport failures keep the typed name so the user can retry
+      // without re-entering anything; focus returns to the field.
+      if (result.reason === "api") {
+        setError(copy.fundSourceSaveFailed);
+        setStatus(copy.fundSourceSaveFailed);
+        toast.error(copy.fundSourceSaveFailed, {
+          description: copy.fundSourceSaveFailedHint,
+        });
+      } else {
+        setError(copy.invalidFundSource);
+        announce(copy.invalidFundSource, false);
+      }
+      nameRef.current?.focus();
       return;
     }
     setName("");
@@ -460,6 +471,7 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
     if (filtersDirty) resetFilters();
     announce(copy.fundSourceAdded, true);
   };
+
 
   const commitRename = async (id: string) => {
     if (walletPending.byId[id]) return;
