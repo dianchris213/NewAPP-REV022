@@ -678,11 +678,12 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
                   <Fragment key={`group-${w.id}`}>
                     {firstOfType ? (
                       <li
-                        role="presentation"
+                        aria-hidden="true"
                         className="pt-3 pb-1 text-[11px] font-bold uppercase tracking-wide text-on-surface-variant/70"
                       >
                         {WALLET_TYPE_LABEL[w.type]}
                       </li>
+
                     ) : null}
                     <li
                       key={w.id}
