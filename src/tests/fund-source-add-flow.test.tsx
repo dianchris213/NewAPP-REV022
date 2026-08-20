@@ -59,7 +59,7 @@ describe("Fund source add flow (min 3 characters + live search)", () => {
 
   it("trims whitespace before applying the 3 character rule", async () => {
     const { user } = await setup();
-    await submitName(user, "  A B  ");
+    await submitName(user, "  Ab  ");
     expect(await screen.findByTestId("fund-source-form-error")).toBeInTheDocument();
     expect(screen.getByTestId("wallet-count")).toHaveTextContent("0");
   });

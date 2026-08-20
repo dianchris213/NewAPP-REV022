@@ -90,7 +90,7 @@ describe("Fund source API error handling", () => {
     // Input preserved and refocused so the user can retry immediately.
     const input = screen.getByTestId("fund-source-name") as HTMLInputElement;
     expect(input).toHaveValue("Dompet Utama");
-    expect(input).toHaveFocus();
+    await waitFor(() => expect(input).toHaveFocus());
     expect(input).toBeEnabled();
 
     // Toast surfaced with an actionable message.
@@ -115,8 +115,10 @@ describe("Fund source API error handling", () => {
     // Retry with the preserved value only — no re-typing.
     await user.click(screen.getByTestId("fund-source-submit"));
     await waitFor(() => expect(screen.getByTestId("wallet-count")).toHaveTextContent("1"));
-    expect(screen.queryByTestId("fund-source-form-error")).not.toBeInTheDocument();
-    expect(screen.getByTestId("fund-source-name")).toHaveValue("");
+    await waitFor(() =>
+      expect(screen.queryByTestId("fund-source-form-error")).not.toBeInTheDocument(),
+    );
+    await waitFor(() => expect(screen.getByTestId("fund-source-name")).toHaveValue(""));
     expect(screen.getByText("Kas Kecil")).toBeInTheDocument();
   });
 });

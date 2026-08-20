@@ -461,7 +461,8 @@ export function FundSourceSheet({ onClose }: { onClose: () => void }) {
         setError(copy.invalidFundSource);
         announce(copy.invalidFundSource, false);
       }
-      nameRef.current?.focus();
+      // Re-enable happens on the next tick; focus once the field is enabled.
+      window.setTimeout(() => nameRef.current?.focus(), 0);
       return;
     }
     setName("");
