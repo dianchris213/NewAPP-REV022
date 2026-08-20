@@ -7,6 +7,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { persistWallet, WalletApiError } from "./wallet-api";
+import { captureApiError } from "./monitoring";
+
+/** Outcome of a fund-source create: validation, duplicate or transport failure. */
+export type WalletAddResult = { ok: true } | { ok: false; reason: "invalid" | "duplicate" | "api" };
+
 
 type TelegramWebAppUser = {
   first_name?: string;
